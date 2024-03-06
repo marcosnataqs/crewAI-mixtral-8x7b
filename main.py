@@ -4,10 +4,12 @@ from decouple import config
 from langchain_openai import ChatOpenAI
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_fireworks import ChatFireworks
+from langchain_community.chat_models.huggingface import ChatHuggingFace
 
 from textwrap import dedent
 from agents import CustomAgents
 from tasks import CustomTasks
+from hugging_face_llm import hf_llm
 
 
 search_tool = DuckDuckGoSearchRun()
@@ -18,6 +20,7 @@ os.environ["LANGCHAIN_TRACING_V2"] = config("LANGCHAIN_TRACING_V2")
 os.environ["LANGCHAIN_API_KEY"] = config("LANGCHAIN_API_KEY")
 os.environ["LANGCHAIN_PROJECT"] = config("LANGCHAIN_PROJECT")
 os.environ["FIREWORKS_API_KEY"] = config("FIREWORKS_API_KEY")
+os.environ["HUGGINGFACEHUB_API_TOKEN"] = config("HUGGINGFACEHUB_API_TOKEN")
 
 # This is the main class that you will use to define your custom crew.
 # You can define as many agents and tasks as you want in agents.py and tasks.py
@@ -26,10 +29,11 @@ os.environ["FIREWORKS_API_KEY"] = config("FIREWORKS_API_KEY")
 class CustomCrew:
     def __init__(self, user_input):
         self.user_input = user_input
-        self.mixtral_8x7b = ChatFireworks(
+        self.mixtral_8x7b_fw = ChatFireworks(
             model_name="accounts/fireworks/models/mixtral-8x7b-instruct",
             temperature=0.7,
         )
+        self.mixtral_8x7b_hf = ChatHuggingFace(llm=hf_llm)
         self.OpenAIGPT35 = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0.7)
 
     def run(self):
@@ -54,8 +58,8 @@ class CustomCrew:
         crew = Crew(
             agents=[researcher, writer],
             tasks=[research_task, write_task],
-            process=Process.hierarchical,
-            manager_llm=self.OpenAIGPT35,
+            process=Process.sequential,
+            # manager_llm=self.OpenAIGPT35,
             verbose=True,
         )
 

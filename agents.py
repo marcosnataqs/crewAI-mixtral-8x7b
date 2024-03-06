@@ -2,6 +2,9 @@ from crewai import Agent
 from crewai_tools import SerperDevTool
 from langchain_openai import ChatOpenAI
 from langchain_fireworks import ChatFireworks
+from langchain_community.chat_models.huggingface import ChatHuggingFace
+
+from hugging_face_llm import hf_llm
 
 
 # This is an example of how to define custom agents.
@@ -9,10 +12,11 @@ from langchain_fireworks import ChatFireworks
 # You can also define custom tasks in tasks.py
 class CustomAgents:
     def __init__(self):
-        self.mixtral_8x7b = ChatFireworks(
+        self.mixtral_8x7b_fw = ChatFireworks(
             model_name="accounts/fireworks/models/mixtral-8x7b-instruct",
             temperature=0.7,
         )
+        self.mixtral_8x7b_hf = ChatHuggingFace(llm=hf_llm)
         self.OpenAIGPT35 = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0.7)
         self.search_tool = SerperDevTool()
 
